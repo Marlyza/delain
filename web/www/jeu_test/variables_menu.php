@@ -784,7 +784,7 @@ if (!in_array($_SERVER["PHP_SELF"], array("/jeu_test/switch.php", "/switch_rapid
                     from compte  
                     join perso_compte on compt_cod=? and pcompt_compt_cod=compt_cod 
                     join perso on perso_cod=pcompt_perso_cod
-                    where perso_actif='O'
+                    where perso_actif in ('O', 'I')
                     
                     union
                     
@@ -792,7 +792,7 @@ if (!in_array($_SERVER["PHP_SELF"], array("/jeu_test/switch.php", "/switch_rapid
                     from compte  
                     join perso_compte on compt_cod=? and pcompt_compt_cod=compt_cod 
                     join perso_familier on pfam_perso_cod=pcompt_perso_cod 
-                    join perso on perso_cod=pfam_familier_cod where perso_actif='O' 
+                    join perso on perso_cod=pfam_familier_cod where perso_actif in ('O', 'I')
                     
                     union 
                     
@@ -800,7 +800,7 @@ if (!in_array($_SERVER["PHP_SELF"], array("/jeu_test/switch.php", "/switch_rapid
                     from compte_sitting
                     join perso_compte on csit_compte_sitteur=? and pcompt_compt_cod=csit_compte_sitte and csit_ddeb <= now() and csit_dfin >= now()
                     join perso on perso_cod=pcompt_perso_cod 
-                    where perso_actif='O'
+                    where perso_actif in ('O', 'I')
                     
                     union
                     
@@ -808,7 +808,7 @@ if (!in_array($_SERVER["PHP_SELF"], array("/jeu_test/switch.php", "/switch_rapid
                     from compte_sitting  
                     join perso_compte on csit_compte_sitteur=? and pcompt_compt_cod=csit_compte_sitte and csit_ddeb <= now() and csit_dfin >= now()
                     join perso_familier on pfam_perso_cod=pcompt_perso_cod 
-                    join perso on perso_cod=pfam_familier_cod where perso_actif='O'
+                    join perso on perso_cod=pfam_familier_cod where perso_actif in ('O', 'I')
                 ) as p on p_perso_cod = perso_cod
                 ORDER BY type, ordre, perso_type_perso ";
     $stmt  = $pdo->prepare($req);

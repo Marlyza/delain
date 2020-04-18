@@ -152,7 +152,7 @@ class compte
             = "SELECT pcompt_perso_cod FROM perso
 						INNER JOIN perso_compte ON pcompt_perso_cod = perso_cod
 						WHERE pcompt_compt_cod = ? 
-						AND perso_actif = 'O'
+						AND perso_actif  in ('O', 'I')
 						AND perso_cod = ? 
 						ORDER BY pcompt_perso_cod";
         $stmt = $pdo->prepare($req);
@@ -228,7 +228,7 @@ class compte
             $req
                 = "SELECT pcompt_perso_cod FROM perso
 						INNER JOIN perso_compte ON pcompt_perso_cod = perso_cod
-						WHERE pcompt_compt_cod = ? AND perso_actif = 'O' ORDER BY pcompt_perso_cod";
+						WHERE pcompt_compt_cod = ? AND perso_actif in ('O','I') ORDER BY pcompt_perso_cod";
 
             $stmt = $pdo->prepare($req);
             $stmt = $pdo->execute(array($this->compt_cod), $stmt);
