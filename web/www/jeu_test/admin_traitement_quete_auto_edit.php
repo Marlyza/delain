@@ -173,17 +173,13 @@ switch ($methode)
         $quete->aquete_description        = $_REQUEST["aquete_description"];
         $quete->aquete_actif              = $_REQUEST["aquete_actif"];
         $quete->aquete_journal_archive    = $_REQUEST["aquete_journal_archive"];
-        $quete->aquete_date_debut         =
-            $_REQUEST["aquete_date_debut"] == "" ? NULL : $_REQUEST["aquete_date_debut"];
+        $quete->aquete_date_debut         = $_REQUEST["aquete_date_debut"] == "" ? NULL : $_REQUEST["aquete_date_debut"];
         $quete->aquete_date_fin           = $_REQUEST["aquete_date_fin"] == "" ? NULL : $_REQUEST["aquete_date_fin"];
-        $quete->aquete_nb_max_instance    =
-            $_REQUEST["aquete_nb_max_instance"] == "" ? NULL : $_REQUEST["aquete_nb_max_instance"];
-        $quete->aquete_nb_max_participant =
-            $_REQUEST["aquete_nb_max_participant"] == "" ? NULL : $_REQUEST["aquete_nb_max_participant"];
-        $quete->aquete_nb_max_rejouable   =
-            $_REQUEST["aquete_nb_max_rejouable"] == "" ? NULL : $_REQUEST["aquete_nb_max_rejouable"];
-        $quete->aquete_nb_max_quete       =
-            $_REQUEST["aquete_nb_max_quete"] == "" ? NULL : $_REQUEST["aquete_nb_max_quete"];
+        $quete->aquete_nb_max_instance    = $_REQUEST["aquete_nb_max_instance"] == "" ? NULL : $_REQUEST["aquete_nb_max_instance"];
+        $quete->aquete_nb_max_participant = $_REQUEST["aquete_nb_max_participant"] == "" ? NULL : $_REQUEST["aquete_nb_max_participant"];
+        $quete->aquete_limite_triplette   = $_REQUEST["aquete_limite_triplette"] == "" ? 'N' : $_REQUEST["aquete_limite_triplette"];
+        $quete->aquete_nb_max_rejouable   = $_REQUEST["aquete_nb_max_rejouable"] == "" ? NULL : $_REQUEST["aquete_nb_max_rejouable"];
+        $quete->aquete_nb_max_quete       = $_REQUEST["aquete_nb_max_quete"] == "" ? NULL : $_REQUEST["aquete_nb_max_quete"];
         $quete->aquete_max_delai          = $_REQUEST["aquete_max_delai"] == "" ? NULL : $_REQUEST["aquete_max_delai"];
 
         /// interraction ou QA standard
@@ -276,9 +272,9 @@ switch ($methode)
         } else if ($etape_modele->aqetapmodel_tag == "#RECEVOIR #PX")
         {
             // c'est uen étape de gain , interdir les valeurs negatives
-            $_REQUEST['aqelem_param_num_1'][1][0] = (int)abs($_REQUEST['aqelem_param_num_1'][1][0]);
+            $_REQUEST['aqelem_param_num_1'][1][0] = abs((int)$_REQUEST['aqelem_param_num_1'][1][0] ?? 0);
             if ($_REQUEST['aqelem_param_num_1'][1][0] > 200) $_REQUEST['aqelem_param_num_1'][1][0] = 200;
-            $_REQUEST['aqelem_param_num_1'][2][0] = (int)abs($_REQUEST['aqelem_param_num_1'][2][0]);
+            $_REQUEST['aqelem_param_num_1'][2][0] = abs((int)$_REQUEST['aqelem_param_num_1'][2][0] ?? 0);
             if ($_REQUEST['aqelem_param_num_1'][2][0] > 100000) $_REQUEST['aqelem_param_num_1'][2][0] = 100000;
         }
         $etape->stocke($new);

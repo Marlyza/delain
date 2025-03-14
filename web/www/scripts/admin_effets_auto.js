@@ -163,6 +163,7 @@ EffetAuto.Types = [
 		parametres: [
 			{ nom: 'effet', type: 'BM', label: 'Effet', description: 'Le bonus/malus qui doit être appliqué.' },
 			{ nom: 'cumulatif', type: 'cumulatif', label: 'Cumulatif', description: 'Sera ignoré si le bonus/malus n’est pas [cumulable].' },
+			{ nom: 'trig_resistance', type: 'checkboxinv', label: 'Test de résistance', description: 'Faire un test de résistance (si décoché le bonus/malus est donné sans faire de test).' },
 			{ nom: 'force', type: 'texte', longueur: 5, label: 'Valeur', description: 'La force du bonus / malus appliqué : valeur fixe ou de la forme 1d6+2', validation: Validation.Types.Roliste },
 			{ nom: 'duree', type: 'entier', label: 'Durée', description: 'La durée de l’effet.', validation: Validation.Types.Entier },
 			{ nom: 'cible', type: 'cible', label: 'Ciblage', description: 'Le type de cible sur lesquelles l’effet peut s’appliquer.' },
@@ -199,6 +200,7 @@ EffetAuto.Types = [
 			{ nom: 'trig_proba_chain', type: 'proba', label: 'Chainage', paragraphe:'divf' ,description: 'Chainage des EA'},
 			{ nom: 'message', type: 'texte', longueur: 40, label: 'Message', description: 'Le message apparaissant dans les événements privés (en public, on aura « X a subi un effet de Y »). [attaquant] représente le nom de le perso déclenchant l’EA, [cible] est la cible de l’EA.' },
 			{ nom: 'force', type: 'entier', longueur: 2, label: 'Soins/Dégâts', description: 'Le nombre de PV impactés en plus de l’effet des BM, une valeur positive pour des soins ou négative pour des dégâts. La valeur peut être fixe ou de la forme 1d6+2.', validation: Validation.Types.Roliste },
+			{ nom: 'trig_resistance', type: 'checkboxinv', label: 'Test de résistance', description: 'Faire un test de résistance (si décoché les soins/dégâts et tous les bonus/malus sont donnés sans faire de test).' },
 			{ nom: 'trig_effet_bm', type: 'listebm', label: 'Liste des Bonus/Malus', description: 'Liste des Bonus/Malus, ils seront tous appliqués si le jet de proba est réussi.' }
 
 		],
@@ -676,6 +678,31 @@ EffetAuto.Types = [
 			{ nom: 'trig_ea_etage', type: 'ea_etage', label: 'Liste des EA', description: 'Liste des EA à activer/désactiver avec chances individuels.' }
 		],
 	},
+	{	nom: 'ea_message',
+		debut: true,
+		tueur: true,
+		mort: true,
+		attaque: true,
+		modifiable: true,
+		bm_compteur: true,
+		ea_etage: true,
+		affichage: 'Message',
+		description: 'Envoyer un message à un ou plusieurs persos.',
+		parametres: [
+			{ nom: 'cible', type: 'cible', label: 'Ciblage', description: 'Le type de cible sur lesquelles l’effet peut s’appliquer.' },
+			{ nom: 'trig_races', type: 'vorpale', label: 'Ciblage Vorpale', description: 'Liste de race pour le ciblage du type Vorpale.' },
+			{ nom: 'portee', type: 'entier', label: 'Portée:', paragraphe:'divd', description: 'La portée de l’effet: -1 pour tout l’étage.', validation: Validation.Types.Entier },
+			{ nom: 'trig_min_portee', type: 'entier', label: 'Mini', paragraphe:'div' ,description: 'La portée minimum de l’effet, si défini la cible devra être au de-là de cette distance.', validation: Validation.Types.EntierOuVide },
+			{ nom: 'trig_vue', type: 'checkbox', label: 'Limiter à la vue', paragraphe:'divf', description: 'Si coché, le ciblage/portée sera pas limité par la vue du porteur de l’EA.' },
+			{ nom: 'nombre',type: 'texte', longueur: 5, label: 'Nombre de cibles', paragraphe:'divd', description: 'Le nombre maximal de cibles. Valeur fixe ou de la forme 1d6+2.', validation: Validation.Types.Roliste },
+			{ nom: 'trig_exclure_porteur', type: 'checkbox', label: 'Exclure le porteur/compagnons', paragraphe:'divf', description: 'Si coché, le ciblage excluras le porteur de l’EA et ses compagnons que sont le familier et le cavalier/monture (on ne peut exclure le porteur d’un ciblage « Soi même » ).' },
+			{ nom: 'proba', type: 'numerique', paragraphe:'divd', label: 'Probabilité', description: 'La probabilité, de 0 à 100, de voir l’effet se déclencher (pour l’ensemble des cibles).', validation: Validation.Types.Numerique },
+			{ nom: 'trig_proba_chain', type: 'proba', label: 'Chainage', paragraphe:'divf' ,description: 'Chainage des EA'},
+			{ nom: 'trig_expediteur_msg', type: 'ExpMsg', label: 'Expediteur', description: 'Expediteur du message.' },
+			{ nom: 'trig_titre_msg', type: 'texte', longueur: 50, label: 'Titre', description: 'Titre du message.' },
+			{ nom: 'message', type: 'textearea', longueur: 4, label: 'Message', description: 'Le message qui sera envoyé par MP aux cibles. [attaquant] représente le nom de le perso déclenchant l’EA, [cible] est la cible de l’EA (celui qui reçoit le message).' },
+		],
+	}
 ];
 /*=============================== fin de défintion des EA ===============================*/
 
@@ -822,6 +849,23 @@ EffetAuto.ChampTexte = function (parametre, numero, valeur) {
 	var onKeyUp = (parametre.validation) ? " onkeyup='Validation.ValideParId(this.id);'" : '';
 
 	var html = '<label><strong>' + parametre.label + '</strong>&nbsp;<input type="text"' + onChange + onKeyUp + ' value="' + valeur + '" size="' + parametre.longueur + '" name="' + nom + '" id="' + nom + '"/>';
+	if (parametre.commentaires) html += parametre.commentaires;
+	html += '</label>';
+	return html;
+}
+
+EffetAuto.ChampTexteArea = function (parametre, numero, valeur) {
+	if (!valeur)
+		valeur = "";
+	var nom = "fonc_" + parametre.nom + numero.toString();
+	if (parametre.validation) {
+		Validation.Ajoute (nom, parametre.validation, parametre.ValidationTrigger ? 'trigger' : 'effet');
+		EffetAuto.Champs[numero].push(nom);
+	}
+	var onChange = (parametre.validation) ? " onchange='Validation.ValideParId(this.id);'" : '';
+	var onKeyUp = (parametre.validation) ? " onkeyup='Validation.ValideParId(this.id);'" : '';
+
+	var html = '<label><strong>' + parametre.label + '</strong>&nbsp;<textarea type="text"' + onChange + onKeyUp + '" cols="60" rows="' + parametre.longueur + '" name="' + nom + '" id="' + nom + '"/>'+ valeur +'</textarea>';
 	if (parametre.commentaires) html += parametre.commentaires;
 	html += '</label>';
 	return html;
@@ -1101,7 +1145,18 @@ EffetAuto.ChampTransac = function (parametre, numero, valeur) {
 	html += '<option value="S" ' + ((valeur == 'S') ? 'selected="selected"' : '') + '>Supprimer l’objet reçu</option>';
 	html += '<option value="I" ' + ((valeur == 'I') ? 'selected="selected"' : '') + '>Mettre l’objet reçu dans l’inventaire</option>';
 	html += '<option value="L" ' + ((valeur == 'L') ? 'selected="selected"' : '') + '>Laisser en transaction</option>';
-	html += '<option value="R" ' + ((valeur == 'R') ? 'selected="selected"' : '') + '>Refuser la transaction</select>';
+	html += '<option value="R" ' + ((valeur == 'R') ? 'selected="selected"' : '') + '>Refuser la transaction</option></select>';
+	if (parametre.commentaires) html += parametre.commentaires;
+	html += '</label>';
+	return html;
+}
+
+EffetAuto.ChampExpediteurMessage = function (parametre, numero, valeur) {
+	if (!valeur) valeur = "I";
+	var html = '<label><strong>' + parametre.label + '</strong>&nbsp;<select name="fonc_' + parametre.nom + numero.toString() + '">';
+	html += '<option value="I" ' + ((valeur == 'I') ? 'selected="selected"' : '') + '>L’Inconscience</option>';
+	html += '<option value="M" ' + ((valeur == 'M') ? 'selected="selected"' : '') + '>Malkiar</option>';
+	html += '<option value="S" ' + ((valeur == 'S') ? 'selected="selected"' : '') + '>Le declencheur d’EA</option></select>';
 	if (parametre.commentaires) html += parametre.commentaires;
 	html += '</label>';
 	return html;
@@ -1468,6 +1523,16 @@ EffetAuto.ChampCheckBox = function (parametre, numero, valeur) {
 	return html;
 }
 
+EffetAuto.ChampCheckBoxInv = function (parametre, numero, valeur) {
+	if (!valeur)
+		valeur = 'O';
+	var html = 	'<label><strong>' + parametre.label + '</strong>&nbsp;' +
+		       	'<input type="hidden" valeur="'+valeur+'" name="checkbox_fonc_' + parametre.nom + numero.toString() + '">' +
+		       	'<input type="checkbox" '+ (valeur=='O' ? 'checked' : '') +' name="fonc_' + parametre.nom + numero.toString() + '">' +
+				'</label><br />';
+	return html;
+}
+
 EffetAuto.ChampCumulatif = function (parametre, numero, valeur) {
 	if (!valeur) valeur = 'N';
 
@@ -1564,6 +1629,9 @@ EffetAuto.EcritLigneFormulaire = function (parametre, numero, valeur, modifiable
 		case 'texte':
 			html = pd + EffetAuto.ChampTexte(parametre, numero, valeur) + pf;
 			break;
+		case 'textearea':
+			html = pd + EffetAuto.ChampTexteArea(parametre, numero, valeur) + pf;
+			break;
 		case 'lecture':
 			if (typeof parametre.valeur !== "undefined")
 				valeur = parametre.valeur;
@@ -1611,6 +1679,9 @@ EffetAuto.EcritLigneFormulaire = function (parametre, numero, valeur, modifiable
 		case 'POSDrop':
 			html = pd + EffetAuto.ChampChoixDrop (parametre, numero, valeur) + pf;
 			break;
+		case 'ExpMsg':
+			html = pd + EffetAuto.ChampExpediteurMessage (parametre, numero, valeur) + pf;
+			break;
 		case 'meca':
 			html = pd + EffetAuto.ChampMeca (parametre, numero, valeur) + pf;
 			break;
@@ -1649,6 +1720,9 @@ EffetAuto.EcritLigneFormulaire = function (parametre, numero, valeur, modifiable
 			break;
 		case 'checkbox':
 			html = pd + EffetAuto.ChampCheckBox(parametre, numero, valeur) + pf;
+			break;
+		case 'checkboxinv':
+			html = pd + EffetAuto.ChampCheckBoxInv(parametre, numero, valeur) + pf;
 			break;
 		case 'cumulatif':
 			html = pd + EffetAuto.ChampCumulatif(parametre, numero, valeur) + pf;

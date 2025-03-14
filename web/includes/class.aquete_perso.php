@@ -798,6 +798,26 @@ class aquete_perso
                     $status_etape = 1;      // 1 => ok etape suivante,
                     break;
 
+                case "#SAUT #MULTIPLE #CONDITION #PERSO":
+                    // cette etape sert à faire un saut vers une autre, le saut est conditionel mais est toujours réussie.
+                    $etape_cod = $this->action->saut_multiple_condition_perso($this);
+
+                    if ($etape_cod < 0)
+                    {
+                        $this->aqperso_actif = ($etape_cod == -2) ? 'S' : 'E';  // Etape terminée avec Succes ou sur une Echec.
+                        $next_etape_cod = 0;                                   // Fin de quête!
+                    } else if ($etape_cod == 0)
+                    {
+                        // Stupide, on a mit un saut d'étape pour sauter à l'étape suivante ! (peut-être une étape automatiquement réussi en cas de délai trop long :-) )
+                        $next_etape_cod = 1 * $this->etape->aqetape_etape_cod;     // saut à l'étape suivante comme etape du type TEXTE
+                    } else
+                    {
+                        $next_etape_cod = $etape_cod;
+                    }
+
+                    $status_etape = 1;      // 1 => ok etape suivante,
+                    break;
+
                 case "#SAUT #CONDITION #COMPETENCE":
                     // cette etape sert à faire un saut vers une autre, le saut est conditionel mais est toujours réussie.
                     $etape_cod = $this->action->saut_condition_competence($this);
@@ -982,6 +1002,24 @@ class aquete_perso
                     $status_etape = 1;      // 1 => ok etape suivante,
                     break;
 
+                case "#SAUT #CONDITION #DETRUIRE #OBJET":
+                    // cette etape sert à faire un saut vers une autre, le saut est conditionné par l'état de mécanisme, le saut est conditionel mais est toujours réussie.
+                    $etape_cod =  $this->action->saut_condition_detruire_objet($this);
+                    if ($etape_cod < 0)
+                    {
+                        $this->aqperso_actif = ($etape_cod == -2) ? 'S' : 'E';  // Etape terminée avec Succes ou sur une Echec.
+                        $next_etape_cod = 0;                                   // Fin de quête!
+                    } else if ($etape_cod == 0)
+                    {
+                        $next_etape_cod = 1 * $this->etape->aqetape_etape_cod;     // saut à l'étape suivante comme etape du type TEXTE
+                    } else
+                    {
+                        $next_etape_cod = $etape_cod;
+                    }
+
+                    $status_etape = 1;      // 1 => ok etape suivante,
+                    break;
+
 
                 case "#ECHANGE #OBJET":
                     // Pour échanger des objets
@@ -996,6 +1034,16 @@ class aquete_perso
                 case "#REPARER #OBJET":
                     // Pour échanger des objets
                     if ( $this->action->reparer_objet($this) )
+                    {
+                        // Les objets ont été donné
+                        $status_etape = 1;      // 1 => ok etape suivante,
+                        unset($_REQUEST);  // l'étape est fini, NE PAS réinsjecter les paramètres de cette étape dans la prochaine
+                    }
+                    break;
+
+                case "#RECHARGER #OBJET":
+                    // Pour échanger des objets
+                    if ( $this->action->recharger_objet($this) )
                     {
                         // Les objets ont été donné
                         $status_etape = 1;      // 1 => ok etape suivante,
@@ -1128,6 +1176,15 @@ class aquete_perso
                     }
                     break;
 
+                case "#MOVE #VISITER #ZONE":
+                    // Le joueur doit rejoindre un type de lieu
+                    if ($this->action->move_visiter_zone($this))
+                    {
+                        // Le perso est à l'endroit attendu
+                        $status_etape = 1;      // 1 => ok etape suivante,
+                    }
+                    break;
+
                 case "#MONSTRE #POSITION":
                     // Génération de monstre sur une position
                     $this->action->monstre_position($this);
@@ -1178,6 +1235,33 @@ class aquete_perso
                 case "#TUER #TYPE":
                     // Le joueur doit tuer un type de monstres.
                     if ($this->action->tuer_type($this))
+                    {
+                        // Le perso est à l'endroit attendu
+                        $status_etape = 1;      // 1 => ok etape suivante,
+                    }
+                    break;
+
+                case "#TUER #TABLEAU #CHASSE":
+                    // Le joueur doit tuer un type de monstres.
+                    if ($this->action->tuer_tableau_chasse($this))
+                    {
+                        // Le perso est à l'endroit attendu
+                        $status_etape = 1;      // 1 => ok etape suivante,
+                    }
+                    break;
+
+                case "#TUER #ZONE":
+                    // Le joueur doit tuer un type de monstres.
+                    if ($this->action->tuer_zone($this))
+                    {
+                        // Le perso est à l'endroit attendu
+                        $status_etape = 1;      // 1 => ok etape suivante,
+                    }
+                    break;
+
+                case "#TUER #PARTICIPER #MORT":
+                    // Le joueur doit tuer un type de monstres.
+                    if ($this->action->tuer_participer_mort($this))
                     {
                         // Le perso est à l'endroit attendu
                         $status_etape = 1;      // 1 => ok etape suivante,
@@ -1330,6 +1414,10 @@ class aquete_perso
 
             case "#REPARER #OBJET":
                 $texte_etape = $etape->get_reparer_objet_form($this);
+                break;
+
+            case "#RECHARGER #OBJET":
+                $texte_etape = $etape->get_recharger_objet_form($this);
                 break;
         }
 

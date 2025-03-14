@@ -297,13 +297,13 @@ if ($erreur == 0)
 
         $action_meca_active = json_decode($meca->meca_si_active);
         $action_meca_desactive = json_decode($meca->meca_si_desactive);
-        if ($action_meca_active == null || count($action_meca_active->meca)==0) { $action_meca_active = (object)["meca" => [0 => (object)["meca_cod" => 0,  "meca_sens" => 0, "meca_delai" => 0]]]; }
-        if ($action_meca_desactive == null || count($action_meca_desactive->meca)==0) { $action_meca_desactive = (object)["meca" => [0 => (object)["meca_cod" => 0,  "meca_sens" => 0, "meca_delai" => 0]]]; }
+        if ($action_meca_active == null || !isset($action_meca_active->meca) || count($action_meca_active->meca)==0) { $action_meca_active = (object)["meca" => [0 => (object)["meca_cod" => 0,  "meca_sens" => 0, "meca_delai" => 0]]]; }
+        if ($action_meca_desactive == null || !isset($action_meca_desactive->meca) || count($action_meca_desactive->meca)==0) { $action_meca_desactive = (object)["meca" => [0 => (object)["meca_cod" => 0,  "meca_sens" => 0, "meca_delai" => 0]]]; }
 
         $action_ea_active = json_decode($meca->meca_si_active);
         $action_ea_desactive = json_decode($meca->meca_si_desactive);
-        if ($action_ea_active == null || count($action_ea_active->ea)==0) { $action_ea_active = (object)["ea" => [0 => (object)["fonc_cod" => 0, "nb_cible"=>"", "cible"=>""]]]; }
-        if ($action_ea_desactive == null || count($action_ea_desactive->ea)==0) { $action_ea_desactive = (object)["ea" => [0 => (object)["fonc_cod" => 0, "nb_cible"=>"", "cible"=>""]]]; }
+        if ($action_ea_active == null || !isset($action_ea_active->ea) || count($action_ea_active->ea)==0) { $action_ea_active = (object)["ea" => [0 => (object)["fonc_cod" => 0, "nb_cible"=>"", "cible"=>""]]]; }
+        if ($action_ea_desactive == null || !isset($action_ea_desactive->ea) || count($action_ea_desactive->ea)==0) { $action_ea_desactive = (object)["ea" => [0 => (object)["fonc_cod" => 0, "nb_cible"=>"", "cible"=>""]]]; }
 
         //echo "<pre>";  print_r($action_meca_desactive); die();
 
@@ -460,10 +460,10 @@ if ($erreur == 0)
 
             $action_meca_active = json_decode($result["meca_si_active"]);
             $action_meca_desactive = json_decode($result["meca_si_desactive"]);
-            $nb_meca_si_activation = ($action_meca_active == null) ? 0 : count($action_meca_active->meca);
-            $nb_meca_si_desactivation = ($action_meca_desactive == null) ? 0 : count($action_meca_desactive->meca);
-            $nb_ea_si_activation = ($action_meca_active == null) ? 0 : count($action_meca_active->ea);
-            $nb_ea_si_desactivation = ($action_meca_desactive == null) ? 0 : count($action_meca_desactive->ea);
+            $nb_meca_si_activation = ($action_meca_active == null || !isset($action_meca_active->meca)) ? 0 : count($action_meca_active->meca);
+            $nb_meca_si_desactivation = ($action_meca_desactive == null || !isset($action_meca_desactive->meca)) ? 0 : count($action_meca_desactive->meca);
+            $nb_ea_si_activation = ($action_meca_active == null || !isset($action_meca_active->ea)) ? 0 : count($action_meca_active->ea);
+            $nb_ea_si_desactivation = ($action_meca_desactive == null || !isset($action_meca_desactive->ea)) ? 0 : count($action_meca_desactive->ea);
             $span_si_activation = "";
             foreach ($action_meca_active->meca as $row => $action_meca)
             {

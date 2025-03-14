@@ -149,6 +149,7 @@ if ($erreur == 0)
             echo '<input type="hidden" name="aquete_journal_archive" value="N" />';
             echo '<input type="hidden" name="aquete_nb_max_instance" value="" />';
             echo '<input type="hidden" name="aquete_nb_max_participant" value="" />';
+            echo '<input type="hidden" name="aquete_limite_triplette" value="N" />';
             echo '<input type="hidden" name="aquete_nb_max_rejouable" value="" />';
             echo '<input type="hidden" name="aquete_nb_max_quete" value="" />';
             echo '<input type="hidden" name="aquete_max_delai" value="" />';
@@ -173,7 +174,8 @@ if ($erreur == 0)
         if ($pos_etage==0) {
             echo '<tr><td><strong>Nb. quête simultanée</strong>:</td><td><input type="text" size=10 name="aquete_nb_max_instance" value="' . $quete->aquete_nb_max_instance . '"> <em>Nombre maximum de joueurs qui peuvent prendre la quête (pas de limite si vide)</em></td></tr>';
             echo '<tr style="display:none;"><td><strong></strong><del>Nb. participants max</del></strong>:</td><td><input disabled type="text" size=10 name="aquete_nb_max_participant" value="1"> <del><em>Nombre max de perso pouvant la faire ensemble (pas de limite si vide)</del></em></td></tr>';
-            echo '<tr><td><strong>Nb. rejouabilité</strong>:</td><td><input type="text" size=10 name="aquete_nb_max_rejouable" value="' . $quete->aquete_nb_max_rejouable . '"> <em>Nombre de fois où elle peut être jouée par un même perso (pas de limite si vide)</em></td></tr>';
+            echo '<tr><td><strong>Limitation à la triplette </strong>:</td><td>'.create_selectbox("aquete_limite_triplette", array("N"=>"Non", "O"=>"Limité"), $quete->aquete_limite_triplette).' <em>Limiter la quête à un seul perso de la tripplette</em></td></tr>';
+            echo '<tr><td><strong>Nb. rejouabilité</strong>:</td><td><input type="text" size=10 name="aquete_nb_max_rejouable" value="' . $quete->aquete_nb_max_rejouable . '"> <em>Nombre de fois où elle peut être jouée par un même perso/triplette (pas de limite si vide)</em></td></tr>';
             echo '<tr><td><strong>Nb. de quête</strong>:</td><td><input type="text" size=10 name="aquete_nb_max_quete" value="' . $quete->aquete_nb_max_quete . '"> <em>Nombre de fois où elle peut être rejouée tous persos confondus (pas de limite si vide)</em></td></tr>';
             echo '<tr><td><strong>Délai max. </strong><em style="font-size: 7pt;">(en jours)</em>:</td><td><input type="text" size=10 name="aquete_max_delai" value="' . $quete->aquete_max_delai . '"> <em>Délai max alloué pour la quête (pas de limite si vide)</em></td></tr>';
             echo '<tr><td><strong>Info sur Nb. Réalisation</strong>:</td><td style="color:#800000">Il y a <strong>' . $nb_quete_en_cours . '</strong> quête en cours sur <strong>' . $quete->get_nb_total() . '</strong> au total <em>(tous persos confondus)</em>';
@@ -269,14 +271,14 @@ if ($erreur == 0)
                     echo '</form>';
                     echo '</div></div>';
 
-                    if (in_array($etape_modele->aqetapmodel_tag, array("#SAUT #CONDITION #EQUIPE", "#CHOIX", "#START", "#SAUT","#SAUT #CONDITION #ETAPE","#SAUT #CONDITION #PERSO","#SAUT #CONDITION #DIALOGUE","#SAUT #CONDITION #PA","#SAUT #CONDITION #MECA","#SAUT #CONDITION #CODE","#SAUT #CONDITION #INTERACTION","#SAUT #CONDITION #ALEATOIRE","#SAUT #CONDITION #ALEATOIRE","#SAUT #CONDITION #COMPETENCE","#SAUT #CONDITION #CARAC")))
+                    if (in_array($etape_modele->aqetapmodel_tag, array("#SAUT #CONDITION #DETRUIRE #OBJET", "#SAUT #MULTIPLE #CONDITION #PERSO", "#SAUT #CONDITION #EQUIPE", "#CHOIX", "#START", "#SAUT","#SAUT #CONDITION #ETAPE","#SAUT #CONDITION #PERSO","#SAUT #CONDITION #DIALOGUE","#SAUT #CONDITION #PA","#SAUT #CONDITION #MECA","#SAUT #CONDITION #CODE","#SAUT #CONDITION #INTERACTION","#SAUT #CONDITION #ALEATOIRE","#SAUT #CONDITION #ALEATOIRE","#SAUT #CONDITION #COMPETENCE","#SAUT #CONDITION #CARAC")))
                     {
                         $type_saut = $etape_modele->aqetapmodel_tag=="#SAUT" ? "inconditionnel" : "conditionnel" ;
                         $element = new aquete_element;
-                        if (in_array($etape_modele->aqetapmodel_tag, array("#START", "#SAUT #CONDITION #ETAPE", "#SAUT #CONDITION #PERSO", "#SAUT #CONDITION #DIALOGUE", "#SAUT #CONDITION #PA", "#SAUT #CONDITION #INTERACTION", "#SAUT #CONDITION #ALEATOIRE")))
+                        if (in_array($etape_modele->aqetapmodel_tag, array("#START", "#SAUT #MULTIPLE #CONDITION #PERSO", "#SAUT #CONDITION #ETAPE", "#SAUT #CONDITION #PERSO", "#SAUT #CONDITION #DIALOGUE", "#SAUT #CONDITION #PA", "#SAUT #CONDITION #INTERACTION", "#SAUT #CONDITION #ALEATOIRE")))
                         {
                             $elements = $element->getBy_etape_param_id($etape->aqetape_cod, 2) ;
-                            if (($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #ETAPE")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #PERSO")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #PA")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #DIALOGUE")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #INTERACTION"))
+                            if (($etape_modele->aqetapmodel_tag == "#SAUT #MULTIPLE #CONDITION #PERSO")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #ETAPE")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #PERSO")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #PA")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #DIALOGUE")||($etape_modele->aqetapmodel_tag == "#SAUT #CONDITION #INTERACTION"))
                             {
                                 $elements = is_array($elements) ? array_merge($elements, $element->getBy_etape_param_id($etape->aqetape_cod, 3)) : $element->getBy_etape_param_id($etape->aqetape_cod, 3);
                             }
@@ -301,7 +303,7 @@ if ($erreur == 0)
                         {
                             $elements = $element->getBy_etape_param_id($etape->aqetape_cod, 6) ;
                             $elements = array_merge($elements, $element->getBy_etape_param_id($etape->aqetape_cod, 5));
-                        } else if (in_array($etape_modele->aqetapmodel_tag, array("#SAUT #CONDITION #MECA")))
+                        } else if (in_array($etape_modele->aqetapmodel_tag, array("#SAUT #CONDITION #MECA", "#SAUT #CONDITION #DETRUIRE #OBJET")))
                         {
                             $elements = $element->getBy_etape_param_id($etape->aqetape_cod, 3) ;
                             $elements = array_merge($elements, $element->getBy_etape_param_id($etape->aqetape_cod, 4));
@@ -354,7 +356,29 @@ if ($erreur == 0)
                         }
                     }
 
-
+                    // Saut d'étape timeout (sortie par le delai)
+                    $element = new aquete_element;
+                    $elements = $element->getBy_etape_param_id($etape->aqetape_cod, 1);
+                    if ($elements && sizeof($elements) >= 1 && $elements[0]->aqelem_type == 'delai' && $elements[0]->aqelem_param_num_1 > 0)
+                    {
+                        $e = new aquete_etape;
+                        if ($elements[0]->aqelem_misc_cod == 0)
+                        {
+                            echo "<strong style='color: yellow'>&rArr; Etape Hors-delai #{$elements[0]->aqelem_misc_cod}</strong> <em style='color: yellow'>Etape suivante</em><br>";
+                        }
+                        else if ($elements[0]->aqelem_misc_cod < 0)
+                        {
+                            echo "<strong style='color: yellow'>&rArr; Etape Hors-delai #{$elements[0]->aqelem_misc_cod}</strong> <em style='color: yellow'>Fin de la quête</em><br>";
+                        }
+                        else if (!$e->charge($elements[0]->aqelem_misc_cod))    // on charge l'étape pour récupérer le nom!
+                        {
+                            echo "<strong style='color: red'>&rArr; Etape Hors-delai #{$elements[0]->aqelem_misc_cod}</strong> <em style='color: red'>(étape inexistante)</em><br>";
+                        }
+                        else
+                        {
+                            echo "<strong style='color: yellow'>&rArr; Etape Hors-delai #{$e->aqetape_cod}</strong> <em>({$e->aqetape_nom})</em><br>";
+                        }
+                    }
 
                     if ($etape_modele->aqetapmodel_tag=="#END #KO")
                         echo '<div class="hr">&nbsp;&nbsp;<strong  style=\'color: blue\'>Fin de la Quête sur un Echec</strong>&nbsp;&nbsp;</div>';
@@ -821,6 +845,25 @@ if ($erreur == 0)
                                     <input data-entry="val" id="'.$row_id.'aqelem_cod" name="aqelem_cod['.$param_id.'][]" type="hidden" value="'.($element->aqelem_type==$param['type'] ? $element->aqelem_cod : '').'"> 
                                     <input name="aqelem_type['.$param_id.'][]" type="hidden" value="'.$param['type'].'"> 
                                      '.create_selectbox("aqelem_param_num_1[$param_id][]", array("0"=>"ET","1"=>"OU"), 1*$element->aqelem_param_num_1, array('id' =>"{$row_id}aqelem_param_num_1", 'style'=>'style="width: 100px;" data-entry="val"')).'
+                                     '.create_selectbox_from_req("aqelem_misc_cod[$param_id][]", "select aqtypecarac_cod, aqtypecarac_nom, aqtypecarac_type from quetes.aquete_type_carac order by aqtypecarac_type, aqtypecarac_nom, aqtypecarac_cod", 1*$element->aqelem_misc_cod, array('id' =>"{$row_id}aqelem_misc_cod", 'style'=>'style="width: 250px;" data-entry="val"')).'
+                                     '.create_selectbox("aqelem_param_txt_1[$param_id][]", array("="=>"=","!="=>"!=","<"=>"<","<="=>"<=","entre"=>"entre",">"=>">",">="=>">="), $element->aqelem_param_txt_1, array('id' =>"{$row_id}aqelem_param_txt_1", 'style'=>'style="width: 50px;" data-entry="val"')).'
+                                     <input data-entry="val" name="aqelem_param_txt_2['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_2" type="text" size="15" value="'.$element->aqelem_param_txt_2.'" style="margin-top: 5px;">
+                                     &nbsp;&nbsp;( et <input data-entry="val" name="aqelem_param_txt_3['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_3" type="text" size="15" value="'.$element->aqelem_param_txt_3.'"> &rArr; pour la condition « entre » seulement )
+                                   </td>';
+                        break;
+
+                    case 'perso_condition_liste':       // pour invocation
+                        if ((1*$element->aqelem_misc_cod != 0) && ($element->aqelem_type==$param['type']))
+                        {
+                            $bon = new bonus_type() ;
+                            $bon->charge( $element->aqelem_misc_cod );
+                            $aqelem_misc_nom = $bon->tonbus_libelle ;
+                        }
+                        echo   '<td>Groupes de conditions :
+                                    <input data-entry="val" id="'.$row_id.'aqelem_cod" name="aqelem_cod['.$param_id.'][]" type="hidden" value="'.($element->aqelem_type==$param['type'] ? $element->aqelem_cod : '').'"> 
+                                    <input name="aqelem_type['.$param_id.'][]" type="hidden" value="'.$param['type'].'"> 
+                                     '.create_selectbox("aqelem_param_num_2[$param_id][]", array(""=>"","1"=>"Nouveau Groupe"), 1*$element->aqelem_param_num_2, array('id' =>"{$row_id}aqelem_param_num_2", 'style'=>'style="width: 150px;" data-entry="val"')).'
+                                     '.create_selectbox("aqelem_param_num_1[$param_id][]", array("0"=>"ET","1"=>"OU"), 1*$element->aqelem_param_num_1, array('id' =>"{$row_id}aqelem_param_num_1", 'style'=>'style="width: 50px;" data-entry="val"')).'
                                      '.create_selectbox_from_req("aqelem_misc_cod[$param_id][]", "select aqtypecarac_cod, aqtypecarac_nom, aqtypecarac_type from quetes.aquete_type_carac order by aqtypecarac_type, aqtypecarac_nom, aqtypecarac_cod", 1*$element->aqelem_misc_cod, array('id' =>"{$row_id}aqelem_misc_cod", 'style'=>'style="width: 250px;" data-entry="val"')).'
                                      '.create_selectbox("aqelem_param_txt_1[$param_id][]", array("="=>"=","!="=>"!=","<"=>"<","<="=>"<=","entre"=>"entre",">"=>">",">="=>">="), $element->aqelem_param_txt_1, array('id' =>"{$row_id}aqelem_param_txt_1", 'style'=>'style="width: 50px;" data-entry="val"')).'
                                      <input data-entry="val" name="aqelem_param_txt_2['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_2" type="text" size="15" value="'.$element->aqelem_param_txt_2.'" style="margin-top: 5px;">
