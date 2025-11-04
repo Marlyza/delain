@@ -2543,6 +2543,38 @@ class perso
         return false ;
     }
 
+    /**
+     * Retourn vrai si la case ciblé peut-être raflée par le perso
+     * @param $position
+     * @return false|void
+     * @throws Exception
+     */
+    function peut_rafler()
+    {
+        // le perso doit être tangible pour pouvoir rafler
+        if ($this->perso_tangible == 'N') return false;
+
+        $pdo = new bddpdo;
+        $req = "select perso_misc_param as misc_param, ppos_pos_cod as pos_cod from perso join perso_position on ppos_perso_cod=perso_cod where perso_cod = :perso_cod ; ";
+        $stmt = $pdo->prepare($req);
+        $stmt = $pdo->execute(array(":perso_cod" => $this->perso_cod),$stmt);
+        if (!$result = $stmt->fetch()) return false ;
+
+        // recupération des paramètres de perte d'objets
+        $misc_param = json_decode($result["misc_param"]);
+        if (!isset($misc_param->kill_perte_objet)) return false;        //pas trouvé le paramère (donc par default pas de raflage possible)
+        $kill_perte_objet = $misc_param->kill_perte_objet ;
+
+        // vérification qu'on est bien sur la case
+        if ($kill_perte_objet->kill_pos_cod != $result["pos_cod"]) return false;
+
+        // vérification qu'il est pas trop tard
+        if (date("Y-m-d h:i:s") > date( "Y-m-d h:i:s", strtotime($kill_perte_objet->kill_date ." +20 DAYS"))) return false;
+
+
+        return true ;       // moins de 20 jours
+    }
+
     public function magasin_identifie($lieu, $objet)
     {
         $pdo    = new bddpdo();
@@ -3178,6 +3210,17 @@ class perso
             {
                 return $this->$field();
             }
+        } else if ((strpos($field, "(") > 0) == (substr($field, -1) == ")"))
+        {
+            //Cas d'une methode avec parametre recup du nom de la methode et faire un tableau de parametres ----
+            $methode = substr($field, 6,  strpos($field, "(" ) - 6 );
+            $params = explode(",", substr($field, strpos($field, "(") + 1, -1));
+
+            //print_r([[$this, $methode], $params]);die();
+            if (method_exists($this, $methode))
+            {
+                return call_user_func_array([$this, $methode], $params);
+            }
         } else
         {
             //Cas d'un propriétée---
@@ -3555,6 +3598,18 @@ class perso
         $stmt   = $pdo->execute(array(":perso" => $this->perso_cod, ":pos_cod" => $position, ":limite" => $limite), $stmt);
         $result = $stmt->fetch();
         return $result['resultat'];
+    }
+    /**
+     * retourne la valeur du compteur passé en paramètre pour le perso
+     */
+    public function compteur($compteur_cod)
+    {
+        $cptval = new compteur_valeur();
+        if (!$cptval->chargeBy_perso_compteur($this->perso_cod, $compteur_cod)) {
+            return false ;
+        }
+
+        return $cptval->comptval_valeur;
     }
 
 

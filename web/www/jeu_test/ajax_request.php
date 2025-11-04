@@ -499,6 +499,31 @@ switch($_REQUEST["request"])
             $stmt = $pdo->execute($search_string, $stmt);
             break;
 
+        case 'compteur':
+            $words = explode(" ", $recherche);
+            $search_string = array();
+
+            $filter = "";
+            foreach ($words as $k => $w)
+            {
+                if ($k>0)  $filter.= "AND ";
+                $filter.= "('compteur_libelle ('||CASE WHEN compteur_type=0 THEN 'global' ELSE 'individuel' END||')' ilike :search$k) ";
+                $search_string[":search$k"] = "%{$w}%" ;
+            }
+
+            // requete de comptage
+            $req = "select count(*) from compteur where {$filter} ";
+            $stmt = $pdo->prepare($req);
+            $stmt = $pdo->execute($search_string, $stmt);
+            $row = $stmt->fetch();
+            $count = $row['count'];
+
+            // requete de recherche
+            $req = "select compteur_cod cod, compteur_libelle ||' ('||CASE WHEN compteur_type=0 THEN 'global' ELSE 'individuel' END||')' nom from compteur where {$filter} ORDER BY compteur_libelle LIMIT {$limit}";
+            $stmt = $pdo->prepare($req);
+            $stmt = $pdo->execute($search_string, $stmt);
+            break;
+
         case 'competence':
             $words = explode(" ", $recherche);
             $search_string = array();
@@ -702,6 +727,9 @@ switch($_REQUEST["request"])
                 break;
             case 'lieu':
                 $req = "select lieu_nom nom from lieu where lieu_cod = ? ";
+                break;
+            case 'quete':
+                $req = "select aquete_nom nom from quetes.aquete where aquete_cod = ? ";
                 break;
             case 'etape':
                 if ($cod==0)
