@@ -33,13 +33,15 @@ EffetAuto.Triggers = {
 			declencheur:'Attaque sa cible',
 			parametres: [
 				{ nom: 'trig_deda', type: 'entier', label: 'Délai entre 2 déclenchements', description: 'C’est le temps minimum (en minutes) entre 2 déclenchements d’actions.' , ValidationTrigger:true, validation: Validation.Types.EntierOuVide },
-			]
+                { nom: 'trig_type_attaque', type: 'TypeATT', label: 'Type d’attaque ?', description: 'Cocher pour déclencher sur les attaques au Corps à corps à distance ou les 2.' },
+            ]
 	},
 	"AE":  {description: "lorsqu’il attaque sa cible qui esquive.",
 			default:'deb_tour_generique',
 			declencheur:'Attaque sa cible qui esquive',
 			parametres: [
 				{ nom: 'trig_deda', type: 'entier', label: 'Délai entre 2 déclenchements', description: 'C’est le temps minimum (en minutes) entre 2 déclenchements d’actions.' , ValidationTrigger:true, validation: Validation.Types.EntierOuVide },
+                { nom: 'trig_type_attaque', type: 'TypeATT', label: 'Type d’attaque ?', description: 'Cocher pour déclencher sur les attaques au Corps à corps à distance ou les 2.' },
 			]
 	},
 	"AT":  {description: "lorsqu’il attaque et touche sa cible.",
@@ -47,6 +49,7 @@ EffetAuto.Triggers = {
 			declencheur:'Attaque et touche sa cible',
 			parametres: [
 				{ nom: 'trig_deda', type: 'entier', label: 'Délai entre 2 déclenchements', description: 'C’est le temps minimum (en minutes) entre 2 déclenchements d’actions.' , ValidationTrigger:true, validation: Validation.Types.EntierOuVide },
+                { nom: 'trig_type_attaque', type: 'TypeATT', label: 'Type d’attaque ?', description: 'Cocher pour déclencher sur les attaques au Corps à corps à distance ou les 2.' },
 			]
 	},
 	"AC":  {description: "lorsqu’il est attaqué.",
@@ -54,6 +57,7 @@ EffetAuto.Triggers = {
 			declencheur:'Est attaqué',
 			parametres: [
 				{ nom: 'trig_deda', type: 'entier', label: 'Délai entre 2 déclenchements', description: 'C’est le temps minimum (en minutes) entre 2 déclenchements d’actions.' , ValidationTrigger:true, validation: Validation.Types.EntierOuVide },
+                { nom: 'trig_type_attaque', type: 'TypeATT', label: 'Type d’attaque ?', description: 'Cocher pour déclencher sur les attaques au Corps à corps à distance ou les 2.' },
 			]
 	},
 	"ACE": {description: "lorsqu’il esquive.",
@@ -61,6 +65,7 @@ EffetAuto.Triggers = {
 			declencheur:'Esquive une attaque',
 			parametres: [
 				{ nom: 'trig_deda', type: 'entier', label: 'Délai entre 2 déclenchements', description: 'C’est le temps minimum (en minutes) entre 2 déclenchements d’actions.' , ValidationTrigger:true, validation: Validation.Types.EntierOuVide },
+                { nom: 'trig_type_attaque', type: 'TypeATT', label: 'Type d’attaque ?', description: 'Cocher pour déclencher sur les attaques au Corps à corps à distance ou les 2.' },
 			]
 	},
 	"ACT": {description: "lorsqu’il est touché.",
@@ -68,6 +73,7 @@ EffetAuto.Triggers = {
 			declencheur:'Est touché par une attaque',
 			parametres: [
 				{ nom: 'trig_deda', type: 'entier', label: 'Délai entre 2 déclenchements', description: 'C’est le temps minimum (en minutes) entre 2 déclenchements d’actions.' , ValidationTrigger:true, validation: Validation.Types.EntierOuVide },
+                { nom: 'trig_type_attaque', type: 'TypeATT', label: 'Type d’attaque ?', description: 'Cocher pour déclencher sur les attaques au Corps à corps à distance ou les 2.' },
 			]
 	},
 	"BMC": {description: "lorsque le Bonus/Malus change.",
@@ -745,31 +751,80 @@ EffetAuto.Types = [
 			{ nom: 'trig_ea_etage', type: 'ea_etage', label: 'Liste des EA', description: 'Liste des EA à activer/désactiver avec chances individuels.' }
 		],
 	},
-	{	nom: 'ea_message',
-		debut: true,
-		tueur: true,
-		mort: true,
-		attaque: true,
-		modifiable: true,
-		bm_compteur: true,
-		ea_etage: true,
-		affichage: 'Message',
-		description: 'Envoyer un message à un ou plusieurs persos.',
-		parametres: [
-			{ nom: 'cible', type: 'cible', label: 'Ciblage', description: 'Le type de cible sur lesquelles l’effet peut s’appliquer.' },
-			{ nom: 'trig_races', type: 'vorpale', label: 'Ciblage Vorpale', description: 'Liste de race pour le ciblage du type Vorpale.' },
-			{ nom: 'portee', type: 'entier', label: 'Portée:', paragraphe:'divd', description: 'La portée de l’effet: -1 pour tout l’étage.', validation: Validation.Types.Entier },
-			{ nom: 'trig_min_portee', type: 'entier', label: 'Mini', paragraphe:'div' ,description: 'La portée minimum de l’effet, si défini la cible devra être au de-là de cette distance.', validation: Validation.Types.EntierOuVide },
-			{ nom: 'trig_vue', type: 'checkbox', label: 'Limiter à la vue', paragraphe:'divf', description: 'Si coché, le ciblage/portée sera pas limité par la vue du porteur de l’EA.' },
-			{ nom: 'nombre',type: 'texte', longueur: 5, label: 'Nombre de cibles', paragraphe:'divd', description: 'Le nombre maximal de cibles. Valeur fixe ou de la forme 1d6+2.', validation: Validation.Types.Roliste },
-			{ nom: 'trig_exclure_porteur', type: 'checkbox', label: 'Exclure le porteur/compagnons', paragraphe:'divf', description: 'Si coché, le ciblage excluras le porteur de l’EA et ses compagnons que sont le familier et le cavalier/monture (on ne peut exclure le porteur d’un ciblage « Soi même » ).' },
-			{ nom: 'proba', type: 'numerique', paragraphe:'divd', label: 'Probabilité', description: 'La probabilité, de 0 à 100, de voir l’effet se déclencher (pour l’ensemble des cibles).', validation: Validation.Types.Numerique },
-			{ nom: 'trig_proba_chain', type: 'proba', label: 'Chainage', paragraphe:'divf' ,description: 'Chainage des EA'},
-			{ nom: 'trig_expediteur_msg', type: 'ExpMsg', label: 'Expediteur', description: 'Expediteur du message.' },
-			{ nom: 'trig_titre_msg', type: 'texte', longueur: 50, label: 'Titre', description: 'Titre du message.' },
-			{ nom: 'message', type: 'textearea', longueur: 4, label: 'Message', description: 'Le message qui sera envoyé par MP aux cibles. [attaquant] représente le nom de le perso déclenchant l’EA, [cible] est la cible de l’EA (celui qui reçoit le message).' },
-		],
-	}
+    {	nom: 'ea_message',
+        debut: true,
+        tueur: true,
+        mort: true,
+        attaque: true,
+        modifiable: true,
+        bm_compteur: true,
+        ea_etage: true,
+        affichage: 'Message',
+        description: 'Envoyer un message à un ou plusieurs persos.',
+        parametres: [
+            { nom: 'cible', type: 'cible', label: 'Ciblage', description: 'Le type de cible sur lesquelles l’effet peut s’appliquer.' },
+            { nom: 'trig_races', type: 'vorpale', label: 'Ciblage Vorpale', description: 'Liste de race pour le ciblage du type Vorpale.' },
+            { nom: 'portee', type: 'entier', label: 'Portée:', paragraphe:'divd', description: 'La portée de l’effet: -1 pour tout l’étage.', validation: Validation.Types.Entier },
+            { nom: 'trig_min_portee', type: 'entier', label: 'Mini', paragraphe:'div' ,description: 'La portée minimum de l’effet, si défini la cible devra être au de-là de cette distance.', validation: Validation.Types.EntierOuVide },
+            { nom: 'trig_vue', type: 'checkbox', label: 'Limiter à la vue', paragraphe:'divf', description: 'Si coché, le ciblage/portée sera pas limité par la vue du porteur de l’EA.' },
+            { nom: 'nombre',type: 'texte', longueur: 5, label: 'Nombre de cibles', paragraphe:'divd', description: 'Le nombre maximal de cibles. Valeur fixe ou de la forme 1d6+2.', validation: Validation.Types.Roliste },
+            { nom: 'trig_exclure_porteur', type: 'checkbox', label: 'Exclure le porteur/compagnons', paragraphe:'divf', description: 'Si coché, le ciblage excluras le porteur de l’EA et ses compagnons que sont le familier et le cavalier/monture (on ne peut exclure le porteur d’un ciblage « Soi même » ).' },
+            { nom: 'proba', type: 'numerique', paragraphe:'divd', label: 'Probabilité', description: 'La probabilité, de 0 à 100, de voir l’effet se déclencher (pour l’ensemble des cibles).', validation: Validation.Types.Numerique },
+            { nom: 'trig_proba_chain', type: 'proba', label: 'Chainage', paragraphe:'divf' ,description: 'Chainage des EA'},
+            { nom: 'trig_expediteur_msg', type: 'ExpMsg', label: 'Expediteur', description: 'Expediteur du message.' },
+            { nom: 'trig_titre_msg', type: 'texte', longueur: 50, label: 'Titre', description: 'Titre du message.' },
+            { nom: 'message', type: 'textearea', longueur: 4, label: 'Message', description: 'Le message qui sera envoyé par MP aux cibles. [attaquant] représente le nom de le perso déclenchant l’EA, [cible] est la cible de l’EA (celui qui reçoit le message).' },
+        ],
+    },
+    {	nom: 'ea_modification_pa',
+        debut: true,
+        tueur: true,
+        mort: true,
+        attaque: true,
+        modifiable: true,
+        bm_compteur: true,
+        ea_etage: true,
+        affichage: 'Modification des PA',
+        description: 'Modifier le compteur de PA de la cible (le gain ou la perte est immediate)',
+        parametres: [
+            { nom: 'cible', type: 'cible', label: 'Ciblage', description: 'Le type de cible sur lesquelles l’effet peut s’appliquer.' },
+            { nom: 'trig_races', type: 'vorpale', label: 'Ciblage Vorpale', description: 'Liste de race pour le ciblage du type Vorpale.' },
+            { nom: 'portee', type: 'entier', label: 'Portée:', paragraphe:'divd', description: 'La portée de l’effet: -1 pour tout l’étage.', validation: Validation.Types.Entier },
+            { nom: 'trig_min_portee', type: 'entier', label: 'Mini', paragraphe:'div' ,description: 'La portée minimum de l’effet, si défini la cible devra être au de-là de cette distance.', validation: Validation.Types.EntierOuVide },
+            { nom: 'trig_vue', type: 'checkbox', label: 'Limiter à la vue', paragraphe:'divf', description: 'Si coché, le ciblage/portée sera pas limité par la vue du porteur de l’EA.' },
+            { nom: 'nombre',type: 'texte', longueur: 5, label: 'Nombre de cibles', paragraphe:'divd', description: 'Le nombre maximal de cibles. Valeur fixe ou de la forme 1d6+2.', validation: Validation.Types.Roliste },
+            { nom: 'trig_exclure_porteur', type: 'checkbox', label: 'Exclure le porteur/compagnons', paragraphe:'divf', description: 'Si coché, le ciblage excluras le porteur de l’EA et ses compagnons que sont le familier et le cavalier/monture (on ne peut exclure le porteur d’un ciblage « Soi même » ).' },
+            { nom: 'proba', type: 'numerique', paragraphe:'divd', label: 'Probabilité', description: 'La probabilité, de 0 à 100, de voir l’effet se déclencher (pour l’ensemble des cibles).', validation: Validation.Types.Numerique },
+            { nom: 'trig_proba_chain', type: 'proba', label: 'Chainage', paragraphe:'divf' ,description: 'Chainage des EA'},
+            { nom: 'message', type: 'texte', longueur: 40, label: 'Message', description: 'Le message apparaissant dans les événements privés (en public, on aura « X a subi un effet de Y »). [attaquant] représente le nom de le perso déclenchant l’EA, [cible] est la cible de l’EA.' },
+            { nom: 'trig_nb_pa', type: 'texte', label: 'Nombre de PA', description: 'Le nombre de PA (positif=gain / négatif=perte). Valeur fixe ou de la forme 1d6+2.' },
+            { nom: 'trig_pa_fixer', type: 'checkbox', label: 'Fixer les PA ', description: 'Si coché, la cible aura un nombre de PA egale à la valeur fixé par le paramètre « Nombre de PA»' },
+        ],
+    },
+    {	nom: 'ea_modification_compteur',
+        debut: true,
+        tueur: true,
+        mort: true,
+        attaque: true,
+        modifiable: true,
+        bm_compteur: true,
+        ea_etage: true,
+        affichage: 'Modification des compteurs systèmes',
+        description: 'Modifier un des compteurs de la cible',
+        parametres: [
+            { nom: 'cible', type: 'cible', label: 'Ciblage', description: 'Le type de cible sur lesquelles l’effet peut s’appliquer.' },
+            { nom: 'trig_races', type: 'vorpale', label: 'Ciblage Vorpale', description: 'Liste de race pour le ciblage du type Vorpale.' },
+            { nom: 'portee', type: 'entier', label: 'Portée:', paragraphe:'divd', description: 'La portée de l’effet: -1 pour tout l’étage.', validation: Validation.Types.Entier },
+            { nom: 'trig_min_portee', type: 'entier', label: 'Mini', paragraphe:'div' ,description: 'La portée minimum de l’effet, si défini la cible devra être au de-là de cette distance.', validation: Validation.Types.EntierOuVide },
+            { nom: 'trig_vue', type: 'checkbox', label: 'Limiter à la vue', paragraphe:'divf', description: 'Si coché, le ciblage/portée sera pas limité par la vue du porteur de l’EA.' },
+            { nom: 'nombre',type: 'texte', longueur: 5, label: 'Nombre de cibles', paragraphe:'divd', description: 'Le nombre maximal de cibles. Valeur fixe ou de la forme 1d6+2.', validation: Validation.Types.Roliste },
+            { nom: 'trig_exclure_porteur', type: 'checkbox', label: 'Exclure le porteur/compagnons', paragraphe:'divf', description: 'Si coché, le ciblage excluras le porteur de l’EA et ses compagnons que sont le familier et le cavalier/monture (on ne peut exclure le porteur d’un ciblage « Soi même » ).' },
+            { nom: 'proba', type: 'numerique', paragraphe:'divd', label: 'Probabilité', description: 'La probabilité, de 0 à 100, de voir l’effet se déclencher (pour l’ensemble des cibles).', validation: Validation.Types.Numerique },
+            { nom: 'trig_proba_chain', type: 'proba', label: 'Chainage', paragraphe:'divf' ,description: 'Chainage des EA'},
+            { nom: 'message', type: 'texte', longueur: 40, label: 'Message', description: 'Le message apparaissant dans les événements privés (en public, on aura « X a subi un effet de Y »). [attaquant] représente le nom de le perso déclenchant l’EA, [cible] est la cible de l’EA.' },
+            { nom: 'trig_sys_compteur', type: 'SYSCompteur', label: 'Liste des compteurs', description: 'Liste des compteurs à modifier.' },
+        ],
+    }
 ];
 /*=============================== fin de défintion des EA ===============================*/
 
@@ -1000,6 +1055,16 @@ EffetAuto.ChampChoixBMCsens = function (parametre, numero, valeur) {
 	return html;
 }
 
+EffetAuto.ChampChoixTypeATT = function (parametre, numero, valeur) {
+	if (!valeur)
+		valeur = 0;
+	var html = '<label><strong>' + parametre.label + '</strong>&nbsp;<select name="fonc_' + parametre.nom + numero.toString() + '">';
+	html += '<option value="0" ' + ((valeur == 0) ? 'selected="selected"' : '' ) + '>Attaque à distance et Corps à Corps</option>';
+	html += '<option value="1" ' + ((valeur == 1) ? 'selected="selected"' : '' ) + '>Attaque au Corps à Corps</option></label>';
+	html += '<option value="2" ' + ((valeur == 2) ? 'selected="selected"' : '' ) + '>Attaque à distance</option></select></label>';
+	return html;
+}
+
 EffetAuto.ChampChoixPVsens = function (parametre, numero, valeur) {
 	if (!valeur)
 		valeur = 0;
@@ -1068,7 +1133,8 @@ EffetAuto.ChampChoixSensDeplacement = function (parametre, numero, valeur) {
 	html += '<option value="0" ' + ((valeur == 0) ? 'selected="selected"' : '' ) + '>Arrive sur la case</option>';
 	html += '<option value="-1" ' + ((valeur == -1) ? 'selected="selected"' : '' ) + '>Quitte la case</option>';
 	html += '<option value="2" ' + ((valeur == 2) ? 'selected="selected"' : '' ) + '>Arrive ou Quitte la case</option>';
-	html += '<option value="-2" ' + ((valeur == -2) ? 'selected="selected"' : '' ) + '>Sur évenement mécanisme</option></select></label>';
+	html += '<option value="-2" ' + ((valeur == -2) ? 'selected="selected"' : '' ) + '>Sur évenement mécanisme</option></label>';
+	html += '<option value="1" ' + ((valeur == 1) ? 'selected="selected"' : '' ) + '>Sur activation DLT</option></select></label></select>';
 	html += "<br />";
 	return html;
 }
@@ -1338,6 +1404,7 @@ EffetAuto.ChampListePersoCondition = function (parametre, numero, valeur) {
 	var nomSigne = "obj_fonc_" + parametre.nom + numero.toString()+"_signe";
 	var nomVal1 = "obj_fonc_" + parametre.nom + numero.toString()+"_val1";
 	var nomVal2 = "obj_fonc_" + parametre.nom + numero.toString()+"_val2";
+	var nomVal3 = "obj_fonc_" + parametre.nom + numero.toString()+"_val3";
 	var label = "div_" + parametre.nom + numero.toString();
 
 	var html = '<label><strong>' + parametre.label + '</strong>&nbsp;:</label><table>' ;
@@ -1369,6 +1436,7 @@ EffetAuto.ChampListePersoCondition = function (parametre, numero, valeur) {
 
 		html += '&nbsp;<input id="val1'+row+'" data-entry="val" name="'+nomVal1+'[]" type="text" size="2" value="'+( valeur.length>0 ? valeur[i].val1 : "")+'">';
 		html += '&nbsp;et&nbsp;<input id="val2'+row+'" data-entry="val" name="'+nomVal2+'[]" type="text" size="2" value="'+( valeur.length>0 ? valeur[i].val2 : "")+'">';
+		html += '&nbsp;idx:&nbsp;<input id="val3'+row+'" data-entry="val" name="'+nomVal3+'[]" type="text" size="2" value="'+( valeur.length>0 && valeur[i].val3 ? valeur[i].val3 : "")+'">';
 		html +=  '</td><td><input type="button" class="test" value="Supprimer" onclick="EffetAuto.delItem($(this).parent(\'td\').parent(\'tr\'), 1);"></td>';
 		html += '</tr>';
 	}
@@ -1410,6 +1478,43 @@ EffetAuto.ChampMeca = function (parametre, numero, valeur) {
 		html += '</span>&nbsp';
 		html += '<span style="display:none;" data-entry="text" id="row-'+numero+'-'+i+'-pos_nom"></span>&nbsp';
 		html += '<input type="button" class="test" value="rechercher" onclick="getTableCod(\'row-'+numero+'-'+i+'-pos\',\'position\',\'Rechercher une position\',[\'\',\'\',\'\']);">';
+
+		html +=  '</td><td><input type="button" class="test" value="Supprimer" onclick="EffetAuto.delItem($(this).parent(\'td\').parent(\'tr\'), 1);"></td>';
+
+		html += '</tr>';
+	}
+	html += '<tr id="add-row-'+numero+'-0-" style="display: block;"><td><input type="button" class="test" value="Nouveau" onclick="EffetAuto.addItem($(this).parent(\'td\').parent(\'tr\').prev(), 0);"></td></tr>';
+	html += '</table>';
+	return html;
+}
+EffetAuto.ChampSysCompteur = function (parametre, numero, valeur) {
+	if (!valeur) valeur = []; else if (typeof valeur == "string") valeur=JSON.parse(valeur);
+	var base = "fonc_" + parametre.nom + numero.toString();
+    var nomCompteurCod = "obj_fonc_" + parametre.nom + numero.toString()+"_compteur_cod";
+	var nomSens = "obj_fonc_" + parametre.nom + numero.toString()+"_sens";
+	var nomValeur = "obj_fonc_" + parametre.nom + numero.toString()+"_valeur";
+	var label = "div_" + parametre.nom + numero.toString();
+
+	var html = '<label><strong>' + parametre.label + '</strong>&nbsp;:</label><table>' ;
+
+	for (var i=0; i < valeur.length || i==0 ; i++)
+	{
+		html +=  '<tr  id="row-'+numero+'-'+i+'-"><td>';
+		html += '<input type="hidden" name="' + base + '[]">';
+
+        html += '&nbsp;<strong><span title="Au format dé rolliste">Valeur</span>:</strong>&nbsp;<input name="'+nomValeur+'[]" type="text" size="3" value="'+( valeur.length>0 ? valeur[i].valeur : "")+'">&nbsp;';
+
+        html += '<select style="max-width: 80px;" name="' + nomSens + '[]">';
+		var selectionne = ((valeur.length && valeur[i].sens == "0") ? 'selected="selected"' : '' ); html += '<option ' + selectionne + ' value="0">Assigner</option>';
+		var selectionne = ((valeur.length && valeur[i].sens == "1") ? 'selected="selected"' : '' ); html += '<option ' + selectionne + ' value="1">Incrémenter</option>';
+		var selectionne = ((valeur.length && valeur[i].sens == "-1") ? 'selected="selected"' : '' ); html += '<option ' + selectionne + ' value="-1">Décrémenter</option>';
+		html += '</select><br>' ;
+
+		html += '<strong>Compteur:</strong>&nbsp;<span title="Compteur.">';
+		html += '<input data-entry="val" id="row-'+numero+'-'+i+'-compteur_cod" name="'+nomCompteurCod+'[]" type="text" size="4" value="'+( valeur.length>0 ? valeur[i].compteur_cod : "")+'">';
+		html += '</span>&nbsp';
+		html += '<span style="" data-entry="text" id="row-'+numero+'-'+i+'-compteur_nom"></span>&nbsp';
+		html += '<input type="button" class="test" value="rechercher" onclick="getTableCod(\'row-'+numero+'-'+i+'-compteur\',\'compteur\',\'Rechercher un compteur\',[\'\',\'\',\'\']);">';
 
 		html +=  '</td><td><input type="button" class="test" value="Supprimer" onclick="EffetAuto.delItem($(this).parent(\'td\').parent(\'tr\'), 1);"></td>';
 
@@ -1782,6 +1887,9 @@ EffetAuto.EcritLigneFormulaire = function (parametre, numero, valeur, modifiable
 		case 'perso-condition':
 			html = pd + EffetAuto.ChampListePersoCondition (parametre, numero, valeur) + pf;
 			break;
+		case 'TypeATT':
+			html = pd + EffetAuto.ChampChoixTypeATT (parametre, numero, valeur) + pf;
+			break;
 		case 'BMCsens':
 			html = pd + EffetAuto.ChampChoixBMCsens (parametre, numero, valeur) + pf;
 			break;
@@ -1805,6 +1913,9 @@ EffetAuto.EcritLigneFormulaire = function (parametre, numero, valeur, modifiable
 			break;
 		case 'meca':
 			html = pd + EffetAuto.ChampMeca (parametre, numero, valeur) + pf;
+			break;
+		case 'SYSCompteur':
+			html = pd + EffetAuto.ChampSysCompteur (parametre, numero, valeur) + pf;
 			break;
 		case 'qa':
 			html = pd + EffetAuto.ChampQA (parametre, numero, valeur) + pf;

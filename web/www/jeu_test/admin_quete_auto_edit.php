@@ -271,8 +271,10 @@ if ($erreur == 0)
                     echo '</form>';
                     echo '</div></div>';
 
-                    if (in_array($etape_modele->aqetapmodel_tag, array("#SAUT #CONDITION #COMPTEUR", "#SAUT #CONDITION #DETRUIRE #OBJET", "#SAUT #MULTIPLE #CONDITION #PERSO", "#SAUT #CONDITION #EQUIPE", "#CHOIX", "#START", "#SAUT","#SAUT #CONDITION #ETAPE","#SAUT #CONDITION #PERSO","#SAUT #CONDITION #DIALOGUE","#SAUT #CONDITION #PA","#SAUT #CONDITION #MECA","#SAUT #CONDITION #CODE","#SAUT #CONDITION #INTERACTION","#SAUT #CONDITION #ALEATOIRE","#SAUT #CONDITION #ALEATOIRE","#SAUT #CONDITION #COMPETENCE","#SAUT #CONDITION #CARAC")))
+                    $estEtapeSaut = false;
+                    if (in_array($etape_modele->aqetapmodel_tag, array("#SAUT #CONDITION #TRANSACTION", "#SAUT #CONDITION #COMPTEUR", "#SAUT #CONDITION #DETRUIRE #OBJET", "#SAUT #MULTIPLE #CONDITION #PERSO", "#SAUT #CONDITION #EQUIPE", "#CHOIX", "#START", "#SAUT","#SAUT #CONDITION #ETAPE","#SAUT #CONDITION #PERSO","#SAUT #CONDITION #DIALOGUE","#SAUT #CONDITION #PA","#SAUT #CONDITION #MECA","#SAUT #CONDITION #CODE","#SAUT #CONDITION #INTERACTION","#SAUT #CONDITION #ALEATOIRE","#SAUT #CONDITION #ALEATOIRE","#SAUT #CONDITION #COMPETENCE","#SAUT #CONDITION #CARAC")))
                     {
+                        $estEtapeSaut = true;
                         $type_saut = $etape_modele->aqetapmodel_tag=="#SAUT" ? "inconditionnel" : "conditionnel" ;
                         $element = new aquete_element;
                         if (in_array($etape_modele->aqetapmodel_tag, array("#START", "#SAUT #MULTIPLE #CONDITION #PERSO", "#SAUT #CONDITION #ETAPE", "#SAUT #CONDITION #PERSO", "#SAUT #CONDITION #DIALOGUE", "#SAUT #CONDITION #PA", "#SAUT #CONDITION #INTERACTION", "#SAUT #CONDITION #ALEATOIRE")))
@@ -307,6 +309,11 @@ if ($erreur == 0)
                         {
                             $elements = $element->getBy_etape_param_id($etape->aqetape_cod, 3) ;
                             $elements = array_merge($elements, $element->getBy_etape_param_id($etape->aqetape_cod, 4));
+                        } else if (in_array($etape_modele->aqetapmodel_tag, array("#SAUT #CONDITION #TRANSACTION")))
+                        {
+                            $elements = $element->getBy_etape_param_id($etape->aqetape_cod, 3) ;
+                            $elements = array_merge($elements, $element->getBy_etape_param_id($etape->aqetape_cod, 4));
+                            $elements = array_merge($elements, $element->getBy_etape_param_id($etape->aqetape_cod, 5));
                         } else
                         {
                             $elements = $element->getBy_etape_param_id($etape->aqetape_cod, 1) ;
@@ -354,6 +361,23 @@ if ($erreur == 0)
                         {
                             echo "<strong style='color: yellow'>&rArr; Etape suivante #{$etape->aqetape_saut_etape_cod}</strong> <em>({$e->aqetape_nom})</em><br>";
                         }
+                    }
+                    else if (!$estEtapeSaut && ! in_array($etape_modele->aqetapmodel_tag, ["#END #OK", "#END #KO"]))
+                    {
+                        // si ce n'est pas une etape saut ni un saut forcé, ni une etape terminale, on affiche le n° d'étape suivante classique
+                        $e = new aquete_etape;
+                        if (!$e->charge($etape->aqetape_etape_cod))    // on charge l'étape pour récupérer le nom!
+                        {
+                            if ($etape->aqetape_etape_cod > 0)
+                            {
+                                echo "<strong style='color: red'>&rArr; Etape suivante #{$etape->aqetape_etape_cod}</strong> <em style='color: red'>(étape inexistante)</em><br>";
+                            }
+                        }
+                        else
+                        {
+                            echo "<strong style='color: seagreen'>&rArr; Etape suivante #{$etape->aqetape_etape_cod}</strong> <em>({$e->aqetape_nom})</em><br>";
+                        }
+
                     }
 
                     // Saut d'étape timeout (sortie par le delai)
@@ -465,7 +489,12 @@ if ($erreur == 0)
                         <br>Cas particuliers sur la conditions sur les Titres du perso: 
                         <br> * L‘opérateur « entre » n\'est pas pris en comtpe et retoune toujours faux
                         <br> * Les opérateurs « > » et « >= » sont traités comme des « like » (le caractère % comme joker)                                         
-                        <br> * Les opérateurs « < » et « <= »  sont traités comme des « not like » (le caractère % comme joker)                                         
+                        <br> * Les opérateurs « < » et « <= »  sont traités comme des « not like » (le caractère % comme joker)          
+                        <br><br><u><b>Conditions indexées</b></u>:
+                        <br>Cas particuliers pour les conditions indexées: 
+                        <br> * La condition est dépéndante d\'un paramètre (l\'index)
+                        <br> * Compteurs : Mettre en index, le CODE du Compteur à tester <a target=_blank href ="admin_params.php?onglet=compteur">(voir les compteurs)</a>                                         
+                                    
                     </div>
                    
                    </td></tr>';
@@ -786,12 +815,17 @@ if ($erreur == 0)
                         echo   '<td>Echange :
                                     <input data-entry="val" id="'.$row_id.'aqelem_cod" name="aqelem_cod['.$param_id.'][]" type="hidden" value="'.($element->aqelem_type==$param['type'] ? $element->aqelem_cod : '').'"> 
                                     <input name="aqelem_type['.$param_id.'][]" type="hidden" value="'.$param['type'].'"> 
+
+                                    <input data-entry="val" name="aqelem_param_txt_2['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_2" type="text" size="5" value="'.$element->aqelem_param_txt_2.'"> Bzf, 
+                                    <input data-entry="val" name="aqelem_param_txt_3['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_3" type="text" size="5" value="'.$element->aqelem_param_txt_3.'"> PX et
                                     
                                     <input data-entry="val" name="aqelem_param_num_1['.$param_id.'][]" id="'.$row_id.'aqelem_param_num_1" type="text" size="2" value="'.$element->aqelem_param_num_1.'"> x
                                     
                                     <input data-entry="val" name="aqelem_misc_cod['.$param_id.'][]" id="'.$row_id.'aqelem_misc_cod" type="text" size="5" value="'.($element->aqelem_type==$param['type'] ? $element->aqelem_misc_cod : '').'" onChange="setNomByTableCod(\''.$row_id.'aqelem_misc_nom\', \'objet_generique\', $(\'#'.$row_id.'aqelem_misc_cod\').val());">
                                     &nbsp;<em></em><span data-entry="text" id="'.$row_id.'aqelem_misc_nom">'.$aqelem_misc_nom.'</span></em>
                                     &nbsp;<input type="button" class="test" value="rechercher" onClick=\'getTableCod("'.$row_id.'aqelem_misc","objet_generique","Rechercher un objet générique");\'> 
+
+
                                     
                                     contre 
                                     <input data-entry="val" name="aqelem_param_txt_1['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_1" type="text" size="5" value="'.$element->aqelem_param_txt_1.'"> Bzf et
@@ -873,7 +907,8 @@ if ($erreur == 0)
                                      '.create_selectbox_from_req("aqelem_misc_cod[$param_id][]", "select aqtypecarac_cod, aqtypecarac_nom, aqtypecarac_type from quetes.aquete_type_carac order by aqtypecarac_type, aqtypecarac_nom, aqtypecarac_cod", 1*$element->aqelem_misc_cod, array('id' =>"{$row_id}aqelem_misc_cod", 'style'=>'style="width: 250px;" data-entry="val"')).'
                                      '.create_selectbox("aqelem_param_txt_1[$param_id][]", array("="=>"=","!="=>"!=","<"=>"<","<="=>"<=","entre"=>"entre",">"=>">",">="=>">="), $element->aqelem_param_txt_1, array('id' =>"{$row_id}aqelem_param_txt_1", 'style'=>'style="width: 50px;" data-entry="val"')).'
                                      <input data-entry="val" name="aqelem_param_txt_2['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_2" type="text" size="25" value="'.$element->aqelem_param_txt_2.'" style="margin-top: 5px;">
-                                     &nbsp;&nbsp;( et <input data-entry="val" name="aqelem_param_txt_3['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_3" type="text" size="25" value="'.$element->aqelem_param_txt_3.'"> &rArr; pour la condition « entre » seulement )                                   
+                                     &nbsp;&nbsp;( <span title="&rArr; pour la condition « entre » seulement">et <input data-entry="val" name="aqelem_param_txt_3['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_3" type="text" size="25" value="'.$element->aqelem_param_txt_3.'"></span>&nbsp)                                   
+                                     &nbsp;<span title="&rArr; pour les conditions du type INDEX">Index:<input data-entry="val" name="aqelem_param_num_3['.$param_id.'][]" id="'.$row_id.'aqelem_param_num_3" type="text" size="5" value="'.$element->aqelem_param_num_3.'"></span>                              
                                      <a href="#" onclick="$(\'#info-conditions\').slideToggle();"><img width="14" src="/images/info_16.png"></a>                   
                                    </td>';
                         break;
@@ -893,7 +928,8 @@ if ($erreur == 0)
                                      '.create_selectbox_from_req("aqelem_misc_cod[$param_id][]", "select aqtypecarac_cod, aqtypecarac_nom, aqtypecarac_type from quetes.aquete_type_carac order by aqtypecarac_type, aqtypecarac_nom, aqtypecarac_cod", 1*$element->aqelem_misc_cod, array('id' =>"{$row_id}aqelem_misc_cod", 'style'=>'style="width: 250px;" data-entry="val"')).'
                                      '.create_selectbox("aqelem_param_txt_1[$param_id][]", array("="=>"=","!="=>"!=","<"=>"<","<="=>"<=","entre"=>"entre",">"=>">",">="=>">="), $element->aqelem_param_txt_1, array('id' =>"{$row_id}aqelem_param_txt_1", 'style'=>'style="width: 50px;" data-entry="val"')).'
                                      <input data-entry="val" name="aqelem_param_txt_2['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_2" type="text" size="25" value="'.$element->aqelem_param_txt_2.'" style="margin-top: 5px;">
-                                     &nbsp;&nbsp;( et <input data-entry="val" name="aqelem_param_txt_3['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_3" type="text" size="25" value="'.$element->aqelem_param_txt_3.'"> &rArr; pour la condition « entre » seulement )
+                                     &nbsp;&nbsp;( <span title="&rArr; pour la condition « entre » seulement">et <input data-entry="val" name="aqelem_param_txt_3['.$param_id.'][]" id="'.$row_id.'aqelem_param_txt_3" type="text" size="25" value="'.$element->aqelem_param_txt_3.'"></span>&nbsp)                                   
+                                     &nbsp;<span title="&rArr; pour les conditions du type INDEX">Index:<input data-entry="val" name="aqelem_param_num_3['.$param_id.'][]" id="'.$row_id.'aqelem_param_num_3" type="text" size="5" value="'.$element->aqelem_param_num_3.'"></span>                              
                                      <a href="#" onclick="$(\'#info-conditions\').slideToggle();"><img width="14" src="/images/info_16.png"></a>                   
                                    </td>';
                         break;

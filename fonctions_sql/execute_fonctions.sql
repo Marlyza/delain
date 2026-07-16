@@ -48,6 +48,10 @@ declare
 	v_sort_aggressif text;     -- sort de agressif
 	v_sort_soutien text;       -- sort de agressif
 
+    -- variable specifique au A, AE, AT, AC, ACE, ACT
+    v_type_attaque text;         -- type d'attaque (0 pas d arme, 1 contact, 2 distance)
+    v_trig_type_attaque text;    -- type du declencheur sur le type d'attaque (0 les 2, 1 attaque au CaC, 2 attaque à distance)
+
 	-- variable specifique au POS
   v_pos_cod integer;         -- position de l'EA de type POS
 	plist record;              -- list de perso
@@ -76,7 +80,9 @@ begin
 		where (fonc_gmon_cod = coalesce(v_gmon_cod, -1) OR (fonc_perso_cod = v_perso_cod) OR (fonc_gmon_cod is null and fonc_perso_cod is null and (v_evenement='BMC' OR v_evenement='DEP')))
 			and (fonc_type = v_evenement OR fonc_type = 'CES' OR (  fonc_type = 'POS'
               AND fonc_trigger_param->>'fonc_trig_rearme' != -1
-              AND ( (coalesce(v_param->>'ancien_pos_cod'::text, '') != coalesce(v_param->>'nouveau_pos_cod'::text, ''))  OR (coalesce(v_param->>'ancien_pos_cod'::text, '') = '' ))
+              AND ( (coalesce(v_param->>'ancien_pos_cod'::text, '') != coalesce(v_param->>'nouveau_pos_cod'::text, ''))
+	                OR (coalesce(v_param->>'ancien_pos_cod'::text, '') = '')
+	                OR (fonc_trigger_param->>'fonc_trig_sens' = 1) )
               AND    (  ( fonc_trigger_param->>'fonc_trig_sens' != -2 AND fonc_trigger_param->>'fonc_trig_sens' != 0  AND fonc_trigger_param->>'fonc_trig_pos_cods' like '% ' || coalesce(v_param->>'ancien_pos_cod'::text, '') ||',%')
 			              OR ( fonc_trigger_param->>'fonc_trig_sens' != -2 AND fonc_trigger_param->>'fonc_trig_sens' != -1 AND fonc_trigger_param->>'fonc_trig_pos_cods' like '% ' || coalesce(v_param->>'nouveau_pos_cod'::text, '') ||',%' )
 			              OR ( fonc_trigger_param->>'fonc_trig_sens' = -2 AND f_to_numeric(v_param->>'ea_fonc_cod'::text)=fonc_cod ) )))
@@ -85,11 +91,11 @@ begin
 		)
 	loop
 
-    -- par défaut on execute la fonction d'EA trouvée
-    v_do_it := true;
+      -- par défaut on execute la fonction d'EA trouvée
+      v_do_it := true;
 
 	  -- on boucle sur tous les évenements qui déclenchent des effets, mais certains déclencheurs ont des paramètres supplémentaires à vérifier.
-	  if row.fonc_type = 'POS' and row.fonc_trigger_param->>'fonc_trig_sens' != -2 then -- -------------------------------------------------------------------------------------
+	  if row.fonc_type = 'POS' and row.fonc_trigger_param->>'fonc_trig_sens' NOT IN (-2, 1) then -- -------------------------------------------------------------------------------------
 
         -- par défaut on ne déclenche pas
         v_do_it := false ;    -- type POS, on vérifie si les conditions sont remplies: arrive/quitte et condition perso
@@ -160,6 +166,22 @@ begin
             end if;
 
         end if;
+
+	  elseif (row.fonc_type = 'POS') and (row.fonc_trigger_param->>'fonc_trig_sens' = 1) then -- -------------------------------------------------------------------------------------
+        -- activation de DLT sur cas à EA
+
+        -- par défaut on ne déclenche pas
+        v_do_it := false ;    -- type POS, on vérifie si les conditions sont remplies: arrive/quitte et condition perso
+
+        -- vérifier si le perso est sur une case à EA et s'il verifie les conditions demandée (Activation DLT vérifié par ancien_pos_cod = nouveau_pos_cod)
+        if (      (coalesce(v_param->>'ancien_pos_cod'::text, '') = coalesce(v_param->>'nouveau_pos_cod'::text, ''))
+              AND (row.fonc_trigger_param->>'fonc_trig_pos_cods' like '% ' || coalesce(v_param->>'ancien_pos_cod'::text, '') ||',%')
+              AND (verif_perso_condition(v_perso_cod, json_extract_path_text(row.fonc_trigger_param, 'fonc_trig_condition')::json ) = 1) ) then
+
+             v_do_it := true ;    -- type POS, on vérifie si les conditions sont remplies: arrive/quitte et condition perso
+
+        end if;
+
 
 	  elseif row.fonc_type = 'CES' then -- -------------------------------------------------------------------------------------
 	      -- CES = Change d'Etat de Santé, au premier passage on memorise la santé, aux passages suivants on vérifie le seuil de déclenchement
@@ -265,6 +287,19 @@ begin
                 (row.fonc_trigger_param->>'fonc_trig_type_neutre'::text = 'O' and v_sort_soutien = 'N' and v_sort_aggressif = 'N')
             )  then
             v_do_it := false ;    -- type MAC avec des conditions non-remplies pour cet EA (pas le bon type de sort)
+        end if;
+
+    elseif  v_evenement in ('A', 'AE', 'AT', 'AC', 'ACE', 'ACT') then -- ---------------------------------------------------------------------------------
+        -- Vérifier le type de déclenchement avec type_attaque :
+        -- v_type_attaque        : 0 = pas d'arme, 1 = contact, 2 = distance
+        -- v_trig_type_attaque   : 0 = les 2 types, 1 = CaC uniquement, 2 = distance uniquement
+        v_type_attaque := coalesce(v_param->>'type_attaque'::text, '0') ;       -- par défaut on considère que c'est une attaque sans arme (0)
+        v_trig_type_attaque := coalesce(row.fonc_trigger_param->>'fonc_trig_type_attaque'::text, '0') ; -- par défaut on considère que le déclencheur est sur les 2 types d'attaque (0)
+        if (    (v_trig_type_attaque = '1' and v_type_attaque = '2')
+              or
+                (v_trig_type_attaque = '2' and v_type_attaque in ('0', '1'))
+            )  then
+            v_do_it := false ;    -- type avec des conditions non-remplies pour cet EA (pas le bon type d'attaque)
         end if;
 
     elseif v_evenement = 'OTR' then -- ---------------------------------------------------------------------------------
