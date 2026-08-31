@@ -299,6 +299,33 @@ class aquete_element
     }
 
     /**
+     * recherche tous les éléments du modèle (hors éléments dédiés à un perso) d'une étape, tous paramètres confondus
+     * utile pour un affichage global des éléments rattachés à une étape (ex: écran de synthèse d'une quête)
+     * @global bdd_mysql $pdo
+     * @return bool|array => false pas trouvé
+     */
+    function getModeleBy_aqetape_cod($aqetape_cod)
+    {
+        $retour = array();
+        $pdo = new bddpdo;
+        $req = "select aqelem_cod from quetes.aquete_element where aqelem_aqetape_cod = ? and aqelem_aqperso_cod is null order by aqelem_param_id, aqelem_param_ordre, aqelem_cod ";
+        $stmt = $pdo->prepare($req);
+        $stmt = $pdo->execute(array($aqetape_cod),$stmt);
+        while($result = $stmt->fetch())
+        {
+            $temp = new aquete_element;
+            $temp->charge($result["aqelem_cod"]);
+            $retour[] = $temp;
+            unset($temp);
+        }
+        if(count($retour) == 0)
+        {
+            return false;
+        }
+        return $retour;
+    }
+
+    /**
      * recherche les éléments d'un perso pour une étapes pour un id de paramètre
      * @global bdd_mysql $pdo
      * @return boolean => false pas trouvé
@@ -809,8 +836,21 @@ class aquete_element
                 $element_texte = "Référence à l'élément #".$this->aqelem_param_num_1." de l'étape <strong><em>".$aquete_etape->aqetape_nom."</em></strong>";
                 break;
 
-            case 'selecteur':       // liste générique (source définie par $param['ext'] côté admin, non résoluble ici)
-                $element_texte = "<strong><em>".$this->aqelem_misc_cod."</em></strong>";
+            case 'selecteur':       // liste générique dont les valeurs sont définies dans le modèle de l'étape (aqetapmodel_parametres -> 'ext')
+                $element_texte = "<strong><em>".$this->aqelem_misc_cod."</em></strong>";       // valeur brute par défaut si non résolue
+                $aqetape = new aquete_etape();
+                if ($aqetape->charge($this->aqelem_aqetape_cod))
+                {
+                    $aqetapmodel = new aquete_etape_modele();
+                    if ($aqetapmodel->charge($aqetape->aqetape_aqetapmodel_cod))
+                    {
+                        $param_liste = $aqetapmodel->get_liste_parametres();
+                        if (isset($param_liste[$this->aqelem_param_id]['ext'][$this->aqelem_misc_cod]))
+                        {
+                            $element_texte = "<strong><em>".$param_liste[$this->aqelem_param_id]['ext'][$this->aqelem_misc_cod]."</em></strong>";
+                        }
+                    }
+                }
                 break;
         }
 
