@@ -886,8 +886,37 @@ if ($erreur == 0)
                     </TR>
                 </TABLE>
 
+<?php
+    $arme_info = "(pas d'arme de base ou série d'arme)";
+
+    if (!empty($result['gmon_arme']) && $result['gmon_arme'] != 'null')
+    {
+        $req_arme = "
+                SELECT gobj_nom,
+                       gobj_comp_cod,
+                       comp_libelle
+                FROM objet_generique
+                LEFT JOIN competences
+                    ON comp_cod = gobj_comp_cod
+                WHERE gobj_cod = " . (int)$result['gmon_arme'];
+
+        $stmt_arme = $pdo->query($req_arme);
+        if ($result_arme = $stmt_arme->fetch())
+        {
+            $nom_arme = $result_arme['gobj_nom'];
+            if (!empty($result_arme['comp_libelle']))
+            {
+                $arme_info = "(Arme = {$nom_arme} : {$result_arme['comp_libelle']})";
+            }
+            else
+            {
+                $arme_info = "(Arme = {$nom_arme} : Attaque aux poings)";
+            }
+        }
+    }
+?>
                 <hr>
-                COMPETENCES
+                COMPETENCES  <?php echo "<em style='color:#800000;'><strong>" . $arme_info . "</strong></em>"; ?>
 
                 <TABLE width="80%" align="center">
                     <tr>
@@ -982,6 +1011,7 @@ if ($erreur == 0)
                         </form>
                     </TR>
                 </TABLE>
+
                 <hr>
                 COMPETENCES SPECIFIQUES
 
