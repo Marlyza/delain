@@ -119,7 +119,11 @@ begin
   INSERT INTO messages (msg_date2, msg_date, msg_titre, msg_corps, msg_init ) VALUES (now(), now(), v_msg_titre, v_texte_msg, v_msg_expediteur ) RETURNING msg_cod into v_msg_cod;
 
   -- Et finalement on parcourt les cibles.
-  for ligne in (select perso_cod , perso_type_perso , perso_race_cod, perso_nom, perso_niveau, perso_int, perso_con, pos_cod, perso_pv, pos_etage, COALESCE(pcompt_compt_cod, 0) as compt_cod
+  for ligne in (
+        select t.* from (
+            select perso_cod , perso_type_perso , perso_race_cod, perso_nom, perso_niveau, perso_int, perso_con, pos_cod, perso_pv, pos_etage,
+                        COALESCE(pcompt_compt_cod, 0) as compt_cod,
+                        row_number() over (partition by COALESCE(pcompt_compt_cod, 0) order by perso_cod) as rang  -- rang du perso au sein de son compte
                 from perso
                   inner join perso_position on ppos_perso_cod = perso_cod
                   inner join positions on pos_cod = ppos_pos_cod
@@ -155,10 +159,14 @@ begin
                        (v_cibles_type = 'M' and perso_cod = COALESCE(f_perso_cavalier(v_cible_donnee), COALESCE(f_perso_monture(v_cible_donnee),0))) or
                        (v_cibles_type = 'T'))
                         -- cas spécifique de la messagerie:
-                      and (perso_type_perso!=3)                                                                         -- on ne mail pas les familiers
-                -- Dans les limites autorisées
-                order by random()
-                limit v_cibles_nombre_max)
+                      and (perso_type_perso!=3)  -- on ne mail pas les familiers
+        ) t
+        -- pas de compte (monstres, etc.) : on garde tout ; sinon uniquement le plus petit perso_cod
+        where t.compt_cod = 0 or t.rang = 1
+
+        -- Dans les limites autorisées
+        order by random()
+        limit v_cibles_nombre_max)
   loop
       -- Un seul destinataire par compte
       if ligne.compt_cod > 0 then
