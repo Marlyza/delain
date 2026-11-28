@@ -168,14 +168,7 @@ begin
         order by random()
         limit v_cibles_nombre_max)
   loop
-      -- Un seul destinataire par compte
-      if ligne.compt_cod > 0 then
-          if ligne.compt_cod = ANY (v_comptes_servis) then
-              continue;
-          end if;
-          v_comptes_servis := array_append(v_comptes_servis, ligne.compt_cod);
-      end if;
-
+  
       -- mail au cible avec corps: v_texte_msg
       insert into messages_dest (dmsg_msg_cod, dmsg_perso_cod, dmsg_lu ,dmsg_archive) values (v_msg_cod, ligne.perso_cod, 'N', 'N');
       v_msg_envoye := v_msg_envoye + 1 ;
